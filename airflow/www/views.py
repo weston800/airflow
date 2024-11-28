@@ -4871,18 +4871,18 @@ class DagRunModelView(AirflowModelView):
         session: Session = NEW_SESSION,
     ):
         """Set dag run to active state; this routine only supports Running and Queued state."""
-        try:
-            count = 0
-            for dr in session.scalars(select(DagRun).where(DagRun.id.in_(dagrun.id for dagrun in drs))):
-                count += 1
-                if state == DagRunState.RUNNING:
-                    dr.start_date = timezone.utcnow()
-                dr.state = state
-            session.commit()
-            flash(f"{count} dag runs were set to {state}.")
-        except Exception as ex:
-            flash(str(ex), "error")
-            flash("Failed to set state", "error")
+        # try:
+        #     count = 0
+        #     for dr in session.scalars(select(DagRun).where(DagRun.id.in_(dagrun.id for dagrun in drs))):
+        #         count += 1
+        #         if state == DagRunState.RUNNING:
+        #             dr.start_date = timezone.utcnow()
+        #         dr.state = state
+        #     session.commit()
+        #     flash(f"{count} dag runs were set to {state}.")
+        # except Exception as ex:
+        #     flash(str(ex), "error")
+        #     flash("Failed to set state", "error")
         return redirect(self.get_default_url())
 
     @action(

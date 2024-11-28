@@ -536,15 +536,15 @@ def clear_task_instances(
             )
             .all()
         )
-        dag_run_state = DagRunState(dag_run_state)  # Validate the state value.
-        for dr in drs:
-            if dr.state in State.finished_dr_states:
-                dr.state = dag_run_state
-                dr.start_date = timezone.utcnow()
-                if dag_run_state == DagRunState.QUEUED:
-                    dr.last_scheduling_decision = None
-                    dr.start_date = None
-                    dr.clear_number += 1
+        # dag_run_state = DagRunState(dag_run_state)  # Validate the state value.
+        # for dr in drs:
+        #     if dr.state in State.finished_dr_states:
+        #         dr.state = dag_run_state
+        #         dr.start_date = timezone.utcnow()
+        #         if dag_run_state == DagRunState.QUEUED:
+        #             dr.last_scheduling_decision = None
+        #             dr.start_date = None
+        #             dr.clear_number += 1
     session.flush()
 
 
@@ -3194,6 +3194,7 @@ class TaskInstance(Base, LoggingMixin):
     def save_to_db(ti: TaskInstance | TaskInstancePydantic, session: Session = NEW_SESSION):
         ti = _coalesce_to_orm_ti(ti=ti, session=session)
         ti.updated_at = timezone.utcnow()
+        del ti.dag_run
         session.merge(ti)
         session.flush()
         session.commit()

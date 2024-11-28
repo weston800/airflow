@@ -352,6 +352,7 @@ class DagRun(Base, LoggingMixin):
                 self.start_date = None
                 self.end_date = None
             if state == DagRunState.RUNNING:
+                self.log.error("STATE SET TO RUNNING %s", self)
                 if self._state in State.finished_dr_states:
                     self.start_date = timezone.utcnow()
                 else:
@@ -903,7 +904,7 @@ class DagRun(Base, LoggingMixin):
 
         # if all tasks finished and at least one failed, the run failed
         if not unfinished.tis and any(x.state in State.failed_states for x in tis_for_dagrun_state):
-            self.log.info("Marking run %s failed", self)
+            self.log.error("Marking run %s failed - from state %s at %s ", self, self.state, self.last_scheduling_decision)
             self.set_state(DagRunState.FAILED)
             self.notify_dagrun_state_changed(msg="task_failure")
 
@@ -976,6 +977,7 @@ class DagRun(Base, LoggingMixin):
 
         # finally, if the leaves aren't done, the dag is still running
         else:
+            self.log.error("DAGRUN %s IS SET TO RUNNING BECAUSE LEAVES AREN'T DONE", self)
             self.set_state(DagRunState.RUNNING)
 
         if self._state == DagRunState.FAILED or self._state == DagRunState.SUCCESS:
@@ -1098,6 +1100,7 @@ class DagRun(Base, LoggingMixin):
         )
 
     def notify_dagrun_state_changed(self, msg: str = ""):
+        self.log.error("NOTIFYING STATE CHANGED TO %s", self.state)
         if self.state == DagRunState.RUNNING:
             get_listener_manager().hook.on_dag_run_running(dag_run=self, msg=msg)
         elif self.state == DagRunState.SUCCESS:

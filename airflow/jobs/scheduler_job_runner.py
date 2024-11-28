@@ -1089,6 +1089,7 @@ class SchedulerJobRunner(BaseJobRunner, LoggingMixin):
                 Trace.start_span(span_name="scheduler_job_loop", component="SchedulerJobRunner") as span,
                 Stats.timer("scheduler.scheduler_loop_duration") as timer,
             ):
+                self.log.info("another scheduler loop %d", loop_count)
                 span.set_attributes(
                     {
                         "category": "scheduler",
@@ -1115,10 +1116,10 @@ class SchedulerJobRunner(BaseJobRunner, LoggingMixin):
 
                     session.expunge_all()
                     num_finished_events = 0
-                    for executor in self.job.executors:
-                        num_finished_events += self._process_executor_events(
-                            executor=executor, session=session
-                        )
+                    # for executor in self.job.executors:
+                    #     num_finished_events += self._process_executor_events(
+                    #         executor=executor, session=session
+                    #     )
 
                 for executor in self.job.executors:
                     try:
@@ -1561,6 +1562,7 @@ class SchedulerJobRunner(BaseJobRunner, LoggingMixin):
                 }
             )
 
+            self.log.error("SETTING DAGRUN % state to RUNNING", dag_run)
             dag_run.state = DagRunState.RUNNING
             dag_run.start_date = timezone.utcnow()
             if dag.timetable.periodic and not dag_run.external_trigger and dag_run.clear_number < 1:
@@ -1662,6 +1664,7 @@ class SchedulerJobRunner(BaseJobRunner, LoggingMixin):
         :param dag_run: The DagRun to schedule
         :return: Callback that needs to be executed
         """
+        self.log.error("Scheduling dag run %s state %s", dag_run, dag_run.state)
         trace_id = int(trace_utils.gen_trace_id(dag_run=dag_run, as_int=True))
         span_id = int(trace_utils.gen_dag_span_id(dag_run=dag_run, as_int=True))
         links = [{"trace_id": trace_id, "span_id": span_id}]
